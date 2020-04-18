@@ -1,0 +1,38 @@
+table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+td {
+    width: 50%;
+    vertical-align: top;
+}
+
+#input,
+#output {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    white-space: pre;
+    width: 100%;
+    display: block;
+    padding: 3%;
+    font: 14px/1.5em 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
+    outline: none;
+    border: none;
+    resize: vertical;
+    height: 500px;
+    height: 65vh;
+    overflow: scroll;
+    tab-size: 4;
+}
+
+#input {
+    background: #ECF2F5;
+    border-right: 2px solid #AAA;
+}
+
+#output {
+    background: #E0EBF5;
+}
