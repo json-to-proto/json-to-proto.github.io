@@ -1,0 +1,14 @@
+{
+  "name": "json-to-proto-app",
+  "version": "0.1.0",
+  "description": "JSON to Protobuf",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0"
+  },
+  "scripts": {
+    "build": "webpack --mode production"
+  }
+}
