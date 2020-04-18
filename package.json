@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "JSON to Protobuf",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@highlightjs/highlight.js": "^10.0.0-beta.0"
+  },
   "devDependencies": {
     "ts-loader": "^7.0.0",
     "typescript": "^3.8.3",

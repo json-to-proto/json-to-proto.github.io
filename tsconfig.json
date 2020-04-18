@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
     "target": "es6",
     "allowJs": true
   }
