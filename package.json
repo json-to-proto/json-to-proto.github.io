@@ -16,6 +16,6 @@
   },
   "scripts": {
     "build": "webpack --mode production",
-    "test": "ts-node ./node_modules/tape/bin/tape ./src/tests/*.ts"
+    "test": "ts-node node_modules/tape/bin/tape src/tests/*.ts"
   }
 }
