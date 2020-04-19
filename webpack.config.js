@@ -20,7 +20,7 @@ module.exports = {
     },
 
     output: {
-        path: __dirname + '/docs/js',
+        path: __dirname + '/static/js',
         filename: '[name].js'
     },
 };

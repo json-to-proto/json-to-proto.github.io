@@ -3,4 +3,4 @@ build:
 	npm run build
 
 browse:
-	browse ./docs/index.html
+	browse index.html
