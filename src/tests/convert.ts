@@ -1,26 +1,43 @@
 import * as test from "tape";
 
-import {convert} from "../convert";
+import {convert, Options} from "../convert";
 
 test("convert test", (t) => {
-    {
-        const expected = `syntax = "proto3";
+    const options = new Options(true);
 
-message SomeMessage {
-}`;
-
-        t.equal(convert("{}").success, expected);
+    function assert(json: string, protobuf: string) {
+        t.equal(convert(json, options).success, protobuf);
     }
 
-    {
-        const expected = `syntax = "proto3";
+    assert("{}", `syntax = "proto3";
+
+message SomeMessage {
+}`);
+
+    assert(`{"id":1}`, `syntax = "proto3";
 
 message SomeMessage {
     int32 id = 1;
-}`;
+}`);
 
-        t.equal(convert(`{"id":1}`).success, expected);
+    assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";
+
+message SomeMessage {
+    int32 id = 1;
+    string name = 2;
+}`);
+
+    assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"}}`, `syntax = "proto3";
+
+message SomeMessage {
+    message License {
+        string name = 1;
     }
+
+    int32 id = 1;
+    string name = 2;
+    License license = 3;
+}`);
 
     t.end();
 });

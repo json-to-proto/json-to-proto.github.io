@@ -6,7 +6,16 @@ class Result {
     }
 }
 
-export function convert(source: string): Result {
+export class Options {
+    constructor(public inline: boolean) {
+    }
+}
+
+export function convert(source: string, options: Options): Result {
+    if (source === "") {
+        return new Result("", "");
+    }
+
     // hack that forces floats to stay as floats
     const text = source.replace(/\.0/g, ".1");
 
