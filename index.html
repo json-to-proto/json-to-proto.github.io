@@ -6,8 +6,29 @@
     <link rel="stylesheet" href="static/css/app.css">
 </head>
 <body>
-    <h1>JSON to Protobuf online</h1>
-
+    <header>
+        <div class="intro">
+            <div class="title">
+                <h1>JSON-to-Proto</h1>
+                <h2>Convert JSON to Protobuf</h2>
+            </div>
+            <div>
+                <p>
+                    This tool instantly converts JSON into a Protobuf. Paste a JSON structure on the left and the equivalent Protobuf will be generated to the right, which you can paste into your program. The script has to make some assumptions, so double-check the output!
+                </p>
+                <p>
+                    Inspired by <a href="https://mholt.github.io/json-to-go/" target="_blank">JSON-to-Go</a>
+                </p>
+            </div>
+        </div>
+    </header>
+    <table>
+        <tr>
+            <th style="width: 45%;">JSON</th>
+            <th style="width: 10%; font-size: 22px;">&#8594;</th>
+            <th style="width: 45%;">Protobuf</th>
+        </tr>
+    </table>
     <table>
         <tr>
             <td style="width: 50%;">
@@ -18,6 +39,8 @@
             </td>
         </tr>
     </table>
+
+    <footer>&copy; 2020 Yaroslav Podorvanov</footer>
 
     <script src="static/js/app.js"></script>
 </body>
