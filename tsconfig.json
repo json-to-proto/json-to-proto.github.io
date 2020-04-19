@@ -3,6 +3,10 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
     "target": "es6",
-    "allowJs": true
+    "allowJs": true,
+    "lib": [
+      "dom",
+      "es2017"
+    ]
   }
 }
