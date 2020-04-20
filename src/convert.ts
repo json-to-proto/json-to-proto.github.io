@@ -37,13 +37,11 @@ function analyze(json: Object): string {
         const array = json;
 
         if (array.length === 0) {
-            return `syntax = "proto3";
+            imports.add("google/protobuf/any.proto");
 
-import "google/protobuf/any.proto";
+            lines.push(`    repeated google.protobuf.Any some_key = 1;`);
 
-message SomeMessage {
-    repeated google.protobuf.Any some_key = 1;
-}`;
+            return render(imports, messages, lines);
         }
 
         const value = array[0];
