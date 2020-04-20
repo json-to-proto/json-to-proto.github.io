@@ -29,6 +29,16 @@ export function convert(source: string, options: Options): Result {
 }
 
 function analyze(json: Object): string {
+    if (Array.isArray(json)) {
+        return `syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message SomeMessage {
+    repeated google.protobuf.Any = 1;
+}`;
+    }
+
     const lines = [];
     const imports = new Set<string>();
     const messages = [];
@@ -104,6 +114,12 @@ function analyzeType(value: any, imports: Set<string>, depth: number): string {
         case "boolean":
             return "bool";
         case "object":
+            if (value === null) {
+                imports.add("google/protobuf/any.proto");
+
+                return "google.protobuf.Any";
+            }
+
             if (depth === 0) {
                 return "object";
             }

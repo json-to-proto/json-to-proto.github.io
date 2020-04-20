@@ -20,11 +20,28 @@ message SomeMessage {
     int32 id = 1;
 }`);
 
+    assert("[]", `syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message SomeMessage {
+    repeated google.protobuf.Any = 1;
+}`);
+
     assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";
 
 message SomeMessage {
     int32 id = 1;
     string name = 2;
+}`);
+
+    assert(`{"id":1,"name":null}`, `syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message SomeMessage {
+    int32 id = 1;
+    google.protobuf.Any name = 2;
 }`);
 
     assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"}}`, `syntax = "proto3";
