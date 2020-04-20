@@ -30,6 +30,7 @@ message SomeMessage {
     assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"}}`, `syntax = "proto3";
 
 message SomeMessage {
+
     message License {
         string name = 1;
     }

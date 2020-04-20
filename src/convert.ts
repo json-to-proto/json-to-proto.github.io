@@ -31,12 +31,34 @@ export function convert(source: string, options: Options): Result {
 function analyze(json: Object): string {
     const lines = [];
     const imports = new Set<string>();
+    const messages = [];
 
     {
         let index = 1;
 
         for (const [key, value] of Object.entries(json)) {
-            const typeName = analyzeType(value, imports);
+            let typeName = analyzeType(value, imports, 0);
+
+            if (typeName === "object") {
+                typeName = key.charAt(0).toUpperCase() + key.substr(1).toLowerCase()
+
+                messages.push("");
+                messages.push(`    message ${typeName} {`);
+
+                let nestedIndex = 1;
+
+                for (const [key, nestedValue] of Object.entries(value)) {
+
+                    let nestedTypeName = analyzeType(nestedValue, imports, 1);
+
+                    messages.push(`        ${nestedTypeName} ${key} = ${nestedIndex};`);
+
+                    nestedIndex += 1;
+                }
+
+                messages.push(`    }`);
+                messages.push("");
+            }
 
             lines.push(`    ${typeName} ${key} = ${index};`);
 
@@ -58,13 +80,14 @@ function analyze(json: Object): string {
     }
 
     result.push("message SomeMessage {");
+    result.push(...messages);
     result.push(...lines);
     result.push("}");
 
     return result.join("\n");
 }
 
-function analyzeType(value: any, imports: Set<string>): string {
+function analyzeType(value: any, imports: Set<string>, depth: number): string {
     switch (typeof value) {
         case "string":
             return "string";
@@ -80,6 +103,10 @@ function analyzeType(value: any, imports: Set<string>): string {
             return "double";
         case "boolean":
             return "bool";
+        case "object":
+            if (depth === 0) {
+                return "object";
+            }
     }
 
     imports.add("google/protobuf/any.proto");
