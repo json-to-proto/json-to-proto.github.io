@@ -29,19 +29,51 @@ export function convert(source: string, options: Options): Result {
 }
 
 function analyze(json: Object): string {
+    const lines = [];
+    const imports = new Set<string>();
+    const messages = [];
+
     if (Array.isArray(json)) {
-        return `syntax = "proto3";
+        const array = json;
+
+        if (array.length === 0) {
+            return `syntax = "proto3";
 
 import "google/protobuf/any.proto";
 
 message SomeMessage {
-    repeated google.protobuf.Any = 1;
+    repeated google.protobuf.Any some_key = 1;
 }`;
-    }
+        }
 
-    const lines = [];
-    const imports = new Set<string>();
-    const messages = [];
+        const value = array[0];
+        let typeName = analyzeType(value, imports, 0);
+
+        if (typeName === "object") {
+            typeName = "SomeNestedMessage";
+
+            messages.push("");
+            messages.push(`    message ${typeName} {`);
+
+            let nestedIndex = 1;
+
+            for (const [key, nestedValue] of Object.entries(value)) {
+
+                let nestedTypeName = analyzeType(nestedValue, imports, 1);
+
+                messages.push(`        ${nestedTypeName} ${key} = ${nestedIndex};`);
+
+                nestedIndex += 1;
+            }
+
+            messages.push(`    }`);
+            messages.push("");
+        }
+
+        lines.push(`    repeated ${typeName} some_key = 1;`);
+
+        return render(imports, messages, lines);
+    }
 
     {
         let index = 1;
@@ -76,6 +108,10 @@ message SomeMessage {
         }
     }
 
+    return render(imports, messages, lines);
+}
+
+function render(imports: Set<string>, messages: Array<string>, lines: Array<string>): string {
     const result = [];
 
     result.push(`syntax = "proto3";`);

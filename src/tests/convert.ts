@@ -25,7 +25,24 @@ message SomeMessage {
 import "google/protobuf/any.proto";
 
 message SomeMessage {
-    repeated google.protobuf.Any = 1;
+    repeated google.protobuf.Any some_key = 1;
+}`);
+
+    assert("[1]", `syntax = "proto3";
+
+message SomeMessage {
+    repeated int32 some_key = 1;
+}`);
+
+    assert(`[{"id":1}]`, `syntax = "proto3";
+
+message SomeMessage {
+
+    message SomeNestedMessage {
+        int32 id = 1;
+    }
+
+    repeated SomeNestedMessage some_key = 1;
 }`);
 
     assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";
