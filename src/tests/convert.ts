@@ -74,7 +74,7 @@ message SomeMessage {
     License license = 3;
 }`);
 
-    assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"},"owner":{"id":1}}`, `syntax = "proto3";
+    assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"},"owner":{"id":1},"tags":["json","protobuf"]}`, `syntax = "proto3";
 
 message SomeMessage {
 
@@ -90,6 +90,7 @@ message SomeMessage {
     string name = 2;
     License license = 3;
     Owner owner = 4;
+    repeated string tags = 5;
 }`);
 
     assert(`{"id":1,"project":{"id":2,"site":{"url":"https://json-to-proto.github.io/"}}}`, `syntax = "proto3";
