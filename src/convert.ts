@@ -70,7 +70,17 @@ export function convert(source: string, options: Options): Result {
     }
 }
 
+function addShift(inline: boolean): string {
+    if (inline) {
+        return `    `;
+    }
+
+    return "";
+}
+
 function analyze(json: Object, options: Options): string {
+    const shift = addShift(options.inline);
+
     const collector = new Collector();
 
     const lines = [];
@@ -81,7 +91,7 @@ function analyze(json: Object, options: Options): string {
         if (array.length === 0) {
             collector.addImport("google/protobuf/any.proto");
 
-            lines.push(`    repeated google.protobuf.Any some_key = 1;`);
+            lines.push(`    repeated google.protobuf.Any items = 1;`);
 
             return render(collector.getImports(), [], lines, options);
         }
@@ -92,10 +102,10 @@ function analyze(json: Object, options: Options): string {
         if (typeName === "object") {
             typeName = "SomeNestedMessage";
 
-            addNested(collector, typeName, value);
+            addNested(collector, typeName, value, shift);
         }
 
-        lines.push(`    repeated ${typeName} some_key = 1;`);
+        lines.push(`    repeated ${typeName} items = 1;`);
 
         return render(collector.getImports(), collector.getMessages(), lines, options);
     }
@@ -109,7 +119,7 @@ function analyze(json: Object, options: Options): string {
             if (typeName === "object") {
                 typeName = collector.generateUniqueName(toMessageName(key));
 
-                addNested(collector, typeName, value);
+                addNested(collector, typeName, value, shift);
             }
 
             lines.push(`    ${typeName} ${key} = ${index};`);
@@ -121,10 +131,10 @@ function analyze(json: Object, options: Options): string {
     return render(collector.getImports(), collector.getMessages(), lines, options);
 }
 
-function addNested(collector: Collector, messageName: string, source: object) {
+function addNested(collector: Collector, messageName: string, source: object, shift: string) {
     const lines = [];
 
-    lines.push(`    message ${messageName} {`);
+    lines.push(`${shift}message ${messageName} {`);
 
     let index = 1;
 
@@ -134,15 +144,15 @@ function addNested(collector: Collector, messageName: string, source: object) {
         if (typeName === "object") {
             typeName = collector.generateUniqueName(toMessageName(key));
 
-            addNested(collector, typeName, value);
+            addNested(collector, typeName, value, shift);
         }
 
-        lines.push(`        ${typeName} ${key} = ${index};`);
+        lines.push(`${shift}    ${typeName} ${key} = ${index};`);
 
         index += 1;
     }
 
-    lines.push(`    }`);
+    lines.push(`${shift}}`);
 
     collector.addMessage(lines);
 }
