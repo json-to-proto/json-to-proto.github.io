@@ -92,5 +92,22 @@ message SomeMessage {
     Owner owner = 4;
 }`);
 
+    assert(`{"id":1,"project":{"id":2,"site":{"url":"https://json-to-proto.github.io/"}}}`, `syntax = "proto3";
+
+message SomeMessage {
+
+    message Site {
+        string url = 1;
+    }
+
+    message Project {
+        int32 id = 1;
+        Site site = 2;
+    }
+
+    int32 id = 1;
+    Project project = 2;
+}`)
+
     t.end();
 });
