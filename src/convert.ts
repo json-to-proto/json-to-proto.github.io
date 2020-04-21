@@ -11,6 +11,48 @@ export class Options {
     }
 }
 
+class Collector {
+    private imports: Set<string>;
+    private messages: Array<Array<string>>;
+    private messageNameSuffixCounter: { [key: string]: number; };
+
+    constructor() {
+        this.imports = new Set<string>()
+        this.messages = [];
+        this.messageNameSuffixCounter = {};
+    }
+
+    addImport(importPath: string) {
+        this.imports.add(importPath);
+    }
+
+    generateUniqueName(source: string): string {
+        if (this.messageNameSuffixCounter.hasOwnProperty(source)) {
+            const suffix = this.messageNameSuffixCounter[source];
+
+            this.messageNameSuffixCounter[source] = suffix + 1;
+
+            return `${source}${suffix}`
+        }
+
+        this.messageNameSuffixCounter[source] = 1;
+
+        return source;
+    }
+
+    addMessage(lines: Array<string>) {
+        this.messages.push(lines);
+    }
+
+    getImports(): Set<string> {
+        return this.imports;
+    }
+
+    getMessages(): Array<Array<string>> {
+        return this.messages;
+    }
+}
+
 export function convert(source: string, options: Options): Result {
     if (source === "") {
         return new Result("", "");
@@ -29,73 +71,45 @@ export function convert(source: string, options: Options): Result {
 }
 
 function analyze(json: Object, options: Options): string {
+    const collector = new Collector();
+
     const lines = [];
-    const imports = new Set<string>();
-    const messages = [];
 
     if (Array.isArray(json)) {
         const array = json;
 
         if (array.length === 0) {
-            imports.add("google/protobuf/any.proto");
+            collector.addImport("google/protobuf/any.proto");
 
             lines.push(`    repeated google.protobuf.Any some_key = 1;`);
 
-            return render(imports, [], lines, options);
+            return render(collector.getImports(), [], lines, options);
         }
 
         const value = array[0];
-        let typeName = analyzeType(value, imports, 0);
+        let typeName = analyzeType(value, collector);
 
         if (typeName === "object") {
             typeName = "SomeNestedMessage";
 
-            messages.push("");
-            messages.push(`    message ${typeName} {`);
-
-            let nestedIndex = 1;
-
-            for (const [key, nestedValue] of Object.entries(value)) {
-
-                let nestedTypeName = analyzeType(nestedValue, imports, 1);
-
-                messages.push(`        ${nestedTypeName} ${key} = ${nestedIndex};`);
-
-                nestedIndex += 1;
-            }
-
-            messages.push(`    }`);
+            addNested(collector, typeName, value);
         }
 
         lines.push(`    repeated ${typeName} some_key = 1;`);
 
-        return render(imports, wrap(messages), lines, options);
+        return render(collector.getImports(), collector.getMessages(), lines, options);
     }
 
     {
         let index = 1;
 
         for (const [key, value] of Object.entries(json)) {
-            let typeName = analyzeType(value, imports, 0);
+            let typeName = analyzeType(value, collector);
 
             if (typeName === "object") {
-                typeName = key.charAt(0).toUpperCase() + key.substr(1).toLowerCase()
+                typeName = collector.generateUniqueName(toMessageName(key));
 
-                messages.push("");
-                messages.push(`    message ${typeName} {`);
-
-                let nestedIndex = 1;
-
-                for (const [key, nestedValue] of Object.entries(value)) {
-
-                    let nestedTypeName = analyzeType(nestedValue, imports, 1);
-
-                    messages.push(`        ${nestedTypeName} ${key} = ${nestedIndex};`);
-
-                    nestedIndex += 1;
-                }
-
-                messages.push(`    }`);
+                addNested(collector, typeName, value);
             }
 
             lines.push(`    ${typeName} ${key} = ${index};`);
@@ -104,7 +118,37 @@ function analyze(json: Object, options: Options): string {
         }
     }
 
-    return render(imports, wrap(messages), lines, options);
+    return render(collector.getImports(), collector.getMessages(), lines, options);
+}
+
+function addNested(collector: Collector, messageName: string, source: object) {
+    const lines = [];
+
+    lines.push(`    message ${messageName} {`);
+
+    let index = 1;
+
+    for (const [key, value] of Object.entries(source)) {
+        let typeName = analyzeType(value, collector);
+
+        if (typeName === "object") {
+            typeName = collector.generateUniqueName(toMessageName(key));
+
+            addNested(collector, typeName, value);
+        }
+
+        lines.push(`        ${typeName} ${key} = ${index};`);
+
+        index += 1;
+    }
+
+    lines.push(`    }`);
+
+    collector.addMessage(lines);
+}
+
+function toMessageName(source: string): string {
+    return source.charAt(0).toUpperCase() + source.substr(1).toLowerCase();
 }
 
 function wrap(source: Array<string>): Array<Array<string>> {
@@ -132,6 +176,7 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
     if (options.inline) {
         result.push("message SomeMessage {");
         if (messages.length > 0) {
+            result.push("");
             for (const message of messages) {
                 result.push(...message);
                 result.push("");
@@ -153,7 +198,7 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
     return result.join("\n");
 }
 
-function analyzeType(value: any, imports: Set<string>, depth: number): string {
+function analyzeType(value: any, collector: Collector): string {
     switch (typeof value) {
         case "string":
             return "string";
@@ -171,17 +216,15 @@ function analyzeType(value: any, imports: Set<string>, depth: number): string {
             return "bool";
         case "object":
             if (value === null) {
-                imports.add("google/protobuf/any.proto");
+                collector.addImport("google/protobuf/any.proto");
 
                 return "google.protobuf.Any";
             }
 
-            if (depth === 0) {
-                return "object";
-            }
+            return "object";
     }
 
-    imports.add("google/protobuf/any.proto");
+    collector.addImport("google/protobuf/any.proto");
 
     return "google.protobuf.Any"
 }
