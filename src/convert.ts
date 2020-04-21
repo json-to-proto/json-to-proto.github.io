@@ -1,3 +1,6 @@
+const defaultImport = "google/protobuf/any.proto";
+const defaultAny = "google.protobuf.Any";
+
 class Result {
     constructor(
         public readonly success: string,
@@ -79,7 +82,7 @@ function addShift(inline: boolean): string {
 }
 
 function analyze(json: Object, options: Options): string {
-    const shift = addShift(options.inline);
+    const inlineShift = addShift(options.inline);
 
     const collector = new Collector();
 
@@ -89,9 +92,9 @@ function analyze(json: Object, options: Options): string {
         const array = json;
 
         if (array.length === 0) {
-            collector.addImport("google/protobuf/any.proto");
+            collector.addImport(defaultImport);
 
-            lines.push(`    repeated google.protobuf.Any items = 1;`);
+            lines.push(`    repeated ${defaultAny} items = 1;`);
 
             return render(collector.getImports(), [], lines, options);
         }
@@ -102,7 +105,7 @@ function analyze(json: Object, options: Options): string {
         if (typeName === "object") {
             typeName = "SomeNestedMessage";
 
-            addNested(collector, typeName, value, shift);
+            addNested(collector, typeName, value, inlineShift);
         }
 
         lines.push(`    repeated ${typeName} items = 1;`);
@@ -114,13 +117,7 @@ function analyze(json: Object, options: Options): string {
         let index = 1;
 
         for (const [key, value] of Object.entries(json)) {
-            let typeName = analyzeType(value, collector);
-
-            if (typeName === "object") {
-                typeName = collector.generateUniqueName(toMessageName(key));
-
-                addNested(collector, typeName, value, shift);
-            }
+            const typeName = analyzeProperty(key, value, collector, inlineShift)
 
             lines.push(`    ${typeName} ${key} = ${index};`);
 
@@ -131,28 +128,36 @@ function analyze(json: Object, options: Options): string {
     return render(collector.getImports(), collector.getMessages(), lines, options);
 }
 
-function addNested(collector: Collector, messageName: string, source: object, shift: string) {
+function analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
+    const typeName = analyzeType(value, collector);
+
+    if (typeName === "object") {
+        const messageName = collector.generateUniqueName(toMessageName(key));
+
+        addNested(collector, messageName, value, inlineShift);
+
+        return messageName;
+    }
+
+    return typeName;
+}
+
+function addNested(collector: Collector, messageName: string, source: object, inlineShift: string) {
     const lines = [];
 
-    lines.push(`${shift}message ${messageName} {`);
+    lines.push(`${inlineShift}message ${messageName} {`);
 
     let index = 1;
 
     for (const [key, value] of Object.entries(source)) {
-        let typeName = analyzeType(value, collector);
+        const typeName = analyzeProperty(key, value, collector, inlineShift)
 
-        if (typeName === "object") {
-            typeName = collector.generateUniqueName(toMessageName(key));
-
-            addNested(collector, typeName, value, shift);
-        }
-
-        lines.push(`${shift}    ${typeName} ${key} = ${index};`);
+        lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
 
         index += 1;
     }
 
-    lines.push(`${shift}}`);
+    lines.push(`${inlineShift}}`);
 
     collector.addMessage(lines);
 }
@@ -209,6 +214,10 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
 }
 
 function analyzeType(value: any, collector: Collector): string {
+    if (Array.isArray(value)) {
+        return "repeated";
+    }
+
     switch (typeof value) {
         case "string":
             return "string";
@@ -226,15 +235,15 @@ function analyzeType(value: any, collector: Collector): string {
             return "bool";
         case "object":
             if (value === null) {
-                collector.addImport("google/protobuf/any.proto");
+                collector.addImport(defaultImport);
 
-                return "google.protobuf.Any";
+                return defaultAny;
             }
 
             return "object";
     }
 
-    collector.addImport("google/protobuf/any.proto");
+    collector.addImport(defaultImport);
 
-    return "google.protobuf.Any"
+    return defaultAny;
 }
