@@ -38,11 +38,11 @@ message SomeMessage {
 
 message SomeMessage {
 
-    message SomeNestedMessage {
+    message Nested {
         int32 id = 1;
     }
 
-    repeated SomeNestedMessage items = 1;
+    repeated Nested items = 1;
 }`);
 
     assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";

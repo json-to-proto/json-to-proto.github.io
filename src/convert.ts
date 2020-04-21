@@ -100,13 +100,7 @@ function analyze(json: Object, options: Options): string {
         }
 
         const value = array[0];
-        let typeName = analyzeType(value, collector);
-
-        if (typeName === "object") {
-            typeName = "SomeNestedMessage";
-
-            addNested(collector, typeName, value, inlineShift);
-        }
+        const typeName = analyzeProperty("nested", value, collector, inlineShift)
 
         lines.push(`    repeated ${typeName} items = 1;`);
 
@@ -129,6 +123,16 @@ function analyze(json: Object, options: Options): string {
 }
 
 function analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            collector.addImport(defaultImport);
+
+            return `repeated ${defaultAny}`;
+        }
+
+        return `repeated ${analyzeType(value[0], collector)}`;
+    }
+
     const typeName = analyzeType(value, collector);
 
     if (typeName === "object") {
@@ -164,14 +168,6 @@ function addNested(collector: Collector, messageName: string, source: object, in
 
 function toMessageName(source: string): string {
     return source.charAt(0).toUpperCase() + source.substr(1).toLowerCase();
-}
-
-function wrap(source: Array<string>): Array<Array<string>> {
-    if (source.length === 0) {
-        return [];
-    }
-
-    return [source];
 }
 
 function render(imports: Set<string>, messages: Array<Array<string>>, lines: Array<string>, options: Options): string {
@@ -214,10 +210,6 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
 }
 
 function analyzeType(value: any, collector: Collector): string {
-    if (Array.isArray(value)) {
-        return "repeated";
-    }
-
     switch (typeof value) {
         case "string":
             return "string";
