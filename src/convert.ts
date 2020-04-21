@@ -98,18 +98,9 @@ function analyzeArray(array: Array<any>, options: Options): string {
     const collector = new Collector();
     const lines = [];
 
-    if (array.length === 0) {
-        collector.addImport(defaultImport);
+    const typeName = analyzeProperty("nested", array, collector, inlineShift)
 
-        lines.push(`    repeated ${defaultAny} items = 1;`);
-
-        return render(collector.getImports(), [], lines, options);
-    }
-
-    const value = array[0];
-    const typeName = analyzeProperty("nested", value, collector, inlineShift)
-
-    lines.push(`    repeated ${typeName} items = 1;`);
+    lines.push(`    ${typeName} items = 1;`);
 
     return render(collector.getImports(), collector.getMessages(), lines, options);
 }
@@ -133,15 +124,30 @@ function analyzeObject(json: object, options: Options): string {
 
 function analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
     if (Array.isArray(value)) {
+        // [] -> any
         if (value.length === 0) {
             collector.addImport(defaultImport);
 
             return `repeated ${defaultAny}`;
         }
 
-        return `repeated ${analyzeType(value[0], collector)}`;
+        // [[...]] -> any
+        const first = value[0];
+        if (Array.isArray(first)) {
+            collector.addImport(defaultImport);
+
+            return `repeated ${defaultAny}`;
+        }
+
+        const typeName = analyzeObjectProperty(key, value[0], collector, inlineShift);
+
+        return `repeated ${typeName}`;
     }
 
+    return analyzeObjectProperty(key, value, collector, inlineShift);
+}
+
+function analyzeObjectProperty(key: string, value: any, collector: Collector, inlineShift: string) {
     const typeName = analyzeType(value, collector);
 
     if (typeName === "object") {

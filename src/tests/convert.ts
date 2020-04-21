@@ -9,43 +9,48 @@ test("convert test", (t) => {
         t.equal(convert(json, options).success, protobuf);
     }
 
-    // null
+    // primitives
     {
-        assert("null", `syntax = "proto3";
+        // null
+        {
+            assert("null", `syntax = "proto3";
 
 import "google/protobuf/any.proto";
 
 message SomeMessage {
     google.protobuf.Any first = 1;
 }`)
-    }
+        }
 
-    // int32
-    {
-        assert("1", `syntax = "proto3";
+        // int32
+        {
+            assert("1", `syntax = "proto3";
 
 message SomeMessage {
     int32 first = 1;
 }`)
-    }
+        }
 
-    // bool
-    {
-        assert("true", `syntax = "proto3";
+        // bool
+        {
+            assert("true", `syntax = "proto3";
 
 message SomeMessage {
     bool first = 1;
 }`)
-    }
+        }
 
-    // string
-    {
-        assert(`"text"`, `syntax = "proto3";
+        // string
+        {
+            assert(`"text"`, `syntax = "proto3";
 
 message SomeMessage {
     string first = 1;
 }`)
+        }
+
     }
+
 
     // object
     {
