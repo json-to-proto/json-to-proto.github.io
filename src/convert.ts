@@ -81,42 +81,51 @@ function addShift(inline: boolean): string {
     return "";
 }
 
-function analyze(json: Object, options: Options): string {
-    const inlineShift = addShift(options.inline);
-
-    const collector = new Collector();
-
-    const lines = [];
-
-    if (Array.isArray(json)) {
-        const array = json;
-
-        if (array.length === 0) {
-            collector.addImport(defaultImport);
-
-            lines.push(`    repeated ${defaultAny} items = 1;`);
-
-            return render(collector.getImports(), [], lines, options);
-        }
-
-        const value = array[0];
-        const typeName = analyzeProperty("nested", value, collector, inlineShift)
-
-        lines.push(`    repeated ${typeName} items = 1;`);
-
-        return render(collector.getImports(), collector.getMessages(), lines, options);
+function analyze(json: object, options: Options): string {
+    if (directType(json)) {
+        return analyzeObject({"first": json}, options);
     }
 
-    {
-        let index = 1;
+    if (Array.isArray(json)) {
+        return analyzeArray(json, options)
+    }
 
-        for (const [key, value] of Object.entries(json)) {
-            const typeName = analyzeProperty(key, value, collector, inlineShift)
+    return analyzeObject(json, options);
+}
 
-            lines.push(`    ${typeName} ${key} = ${index};`);
+function analyzeArray(array: Array<any>, options: Options): string {
+    const inlineShift = addShift(options.inline);
+    const collector = new Collector();
+    const lines = [];
 
-            index += 1;
-        }
+    if (array.length === 0) {
+        collector.addImport(defaultImport);
+
+        lines.push(`    repeated ${defaultAny} items = 1;`);
+
+        return render(collector.getImports(), [], lines, options);
+    }
+
+    const value = array[0];
+    const typeName = analyzeProperty("nested", value, collector, inlineShift)
+
+    lines.push(`    repeated ${typeName} items = 1;`);
+
+    return render(collector.getImports(), collector.getMessages(), lines, options);
+}
+
+function analyzeObject(json: object, options: Options): string {
+    const inlineShift = addShift(options.inline);
+    const collector = new Collector();
+    const lines = [];
+    let index = 1;
+
+    for (const [key, value] of Object.entries(json)) {
+        const typeName = analyzeProperty(key, value, collector, inlineShift)
+
+        lines.push(`    ${typeName} ${key} = ${index};`);
+
+        index += 1;
     }
 
     return render(collector.getImports(), collector.getMessages(), lines, options);
@@ -207,6 +216,19 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
     }
 
     return result.join("\n");
+}
+
+function directType(value: any): boolean {
+    switch (typeof value) {
+        case "string":
+        case "number":
+        case "boolean":
+            return true;
+        case "object":
+            return value === null;
+    }
+
+    return false;
 }
 
 function analyzeType(value: any, collector: Collector): string {
