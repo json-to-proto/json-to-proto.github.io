@@ -22,13 +22,13 @@ export function convert(source: string, options: Options): Result {
     try {
         const json = JSON.parse(text);
 
-        return new Result(analyze(json), "");
+        return new Result(analyze(json, options), "");
     } catch (e) {
         return new Result("", e.message);
     }
 }
 
-function analyze(json: Object): string {
+function analyze(json: Object, options: Options): string {
     const lines = [];
     const imports = new Set<string>();
     const messages = [];
@@ -41,7 +41,7 @@ function analyze(json: Object): string {
 
             lines.push(`    repeated google.protobuf.Any some_key = 1;`);
 
-            return render(imports, messages, lines);
+            return render(imports, [], lines, options);
         }
 
         const value = array[0];
@@ -65,12 +65,11 @@ function analyze(json: Object): string {
             }
 
             messages.push(`    }`);
-            messages.push("");
         }
 
         lines.push(`    repeated ${typeName} some_key = 1;`);
 
-        return render(imports, messages, lines);
+        return render(imports, wrap(messages), lines, options);
     }
 
     {
@@ -97,7 +96,6 @@ function analyze(json: Object): string {
                 }
 
                 messages.push(`    }`);
-                messages.push("");
             }
 
             lines.push(`    ${typeName} ${key} = ${index};`);
@@ -106,27 +104,51 @@ function analyze(json: Object): string {
         }
     }
 
-    return render(imports, messages, lines);
+    return render(imports, wrap(messages), lines, options);
 }
 
-function render(imports: Set<string>, messages: Array<string>, lines: Array<string>): string {
+function wrap(source: Array<string>): Array<Array<string>> {
+    if (source.length === 0) {
+        return [];
+    }
+
+    return [source];
+}
+
+function render(imports: Set<string>, messages: Array<Array<string>>, lines: Array<string>, options: Options): string {
     const result = [];
 
     result.push(`syntax = "proto3";`);
-    result.push("");
 
     if (imports.size > 0) {
+        result.push("");
+
         for (const importName of imports) {
             result.push(`import "${importName}";`);
         }
-
-        result.push("");
     }
 
-    result.push("message SomeMessage {");
-    result.push(...messages);
-    result.push(...lines);
-    result.push("}");
+    result.push("");
+    if (options.inline) {
+        result.push("message SomeMessage {");
+        if (messages.length > 0) {
+            for (const message of messages) {
+                result.push(...message);
+                result.push("");
+            }
+        }
+        result.push(...lines);
+        result.push("}");
+    } else {
+        for (const message of messages) {
+            result.push(...message);
+            result.push("");
+        }
+
+        result.push("message SomeMessage {");
+        result.push(...lines);
+        result.push("}");
+    }
 
     return result.join("\n");
 }

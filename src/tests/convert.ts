@@ -74,5 +74,23 @@ message SomeMessage {
     License license = 3;
 }`);
 
+    assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"},"owner":{"id":1}}`, `syntax = "proto3";
+
+message SomeMessage {
+
+    message License {
+        string name = 1;
+    }
+
+    message Owner {
+        int32 id = 1;
+    }
+
+    int32 id = 1;
+    string name = 2;
+    License license = 3;
+    Owner owner = 4;
+}`);
+
     t.end();
 });
