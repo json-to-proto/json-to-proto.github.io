@@ -22,12 +22,12 @@ message SomeMessage {
 }`)
         }
 
-        // int32
+        // uint32
         {
             assert("1", `syntax = "proto3";
 
 message SomeMessage {
-    int32 first = 1;
+    uint32 first = 1;
 }`)
         }
 
@@ -62,13 +62,13 @@ message SomeMessage {
         assert(`{"id":1}`, `syntax = "proto3";
 
 message SomeMessage {
-    int32 id = 1;
+    uint32 id = 1;
 }`);
 
         assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";
 
 message SomeMessage {
-    int32 id = 1;
+    uint32 id = 1;
     string name = 2;
 }`);
 
@@ -77,7 +77,7 @@ message SomeMessage {
 import "google/protobuf/any.proto";
 
 message SomeMessage {
-    int32 id = 1;
+    uint32 id = 1;
     google.protobuf.Any name = 2;
 }`);
 
@@ -89,7 +89,7 @@ message SomeMessage {
         string name = 1;
     }
 
-    int32 id = 1;
+    uint32 id = 1;
     string name = 2;
     License license = 3;
 }`);
@@ -103,10 +103,10 @@ message SomeMessage {
     }
 
     message Owner {
-        int32 id = 1;
+        uint32 id = 1;
     }
 
-    int32 id = 1;
+    uint32 id = 1;
     string name = 2;
     License license = 3;
     Owner owner = 4;
@@ -122,11 +122,11 @@ message SomeMessage {
     }
 
     message Project {
-        int32 id = 1;
+        uint32 id = 1;
         Site site = 2;
     }
 
-    int32 id = 1;
+    uint32 id = 1;
     Project project = 2;
 }`)
     }
@@ -144,7 +144,7 @@ message SomeMessage {
         assert("[1]", `syntax = "proto3";
 
 message SomeMessage {
-    repeated int32 items = 1;
+    repeated uint32 items = 1;
 }`);
 
         assert(`[{"id":1}]`, `syntax = "proto3";
@@ -152,7 +152,7 @@ message SomeMessage {
 message SomeMessage {
 
     message Nested {
-        int32 id = 1;
+        uint32 id = 1;
     }
 
     repeated Nested items = 1;

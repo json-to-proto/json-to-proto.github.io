@@ -243,11 +243,20 @@ function analyzeType(value: any, collector: Collector): string {
             return "string";
         case "number":
             if (value % 1 === 0) {
-                if (value > -2147483648 && value < 2147483647) {
+                if (value < 0) {
+                    if (value < -2147483648) {
+                        return "int64";
+                    }
+
                     return "int32";
                 }
 
-                return "int64";
+
+                if (value > 2147483647) {
+                    return "uint64";
+                }
+
+                return "uint32";
             }
 
             return "double";
