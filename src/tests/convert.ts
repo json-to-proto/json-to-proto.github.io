@@ -150,10 +150,10 @@ message SomeMessage {
 }`);
 
             // biggest type
-            assert("[1, 2147483648]", `syntax = "proto3";
+            assert("[1, 4294967296]", `syntax = "proto3";
 
 message SomeMessage {
-    repeated int64 items = 1;
+    repeated uint64 items = 1;
 }`);
         }
 

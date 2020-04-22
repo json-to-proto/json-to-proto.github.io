@@ -9,6 +9,20 @@ class Result {
     }
 }
 
+class ProtoPrimitiveType {
+    constructor(
+        public readonly name: string,
+        public readonly complex: boolean,
+        public readonly merge: boolean,
+    ) {
+    }
+}
+
+const boolProtoPrimitiveType = new ProtoPrimitiveType("bool", false, false);
+const stringProtoPrimitiveType = new ProtoPrimitiveType("string", false, false);
+const int64ProtoPrimitiveType = new ProtoPrimitiveType("int64", false, true);
+const complexProtoType = new ProtoPrimitiveType(defaultAny, true, false);
+
 export class Options {
     constructor(public inline: boolean) {
     }
@@ -98,7 +112,7 @@ function analyzeArray(array: Array<any>, options: Options): string {
     const collector = new Collector();
     const lines = [];
 
-    const typeName = analyzeProperty("nested", array, collector, inlineShift)
+    const typeName = analyzeArrayProperty("nested", array, collector, inlineShift)
 
     lines.push(`    ${typeName} items = 1;`);
 
@@ -122,26 +136,37 @@ function analyzeObject(json: object, options: Options): string {
     return render(collector.getImports(), collector.getMessages(), lines, options);
 }
 
+function analyzeArrayProperty(key: string, value: Array<any>, collector: Collector, inlineShift: string): string {
+    // [] -> any
+    const length = value.length;
+    if (length === 0) {
+        collector.addImport(defaultImport);
+
+        return `repeated ${defaultAny}`;
+    }
+
+    // [[...], ...] -> any
+    const first = value[0];
+    if (Array.isArray(first)) {
+        collector.addImport(defaultImport);
+
+        return `repeated ${defaultAny}`;
+    }
+
+    if (length > 1) {
+        const primitive = samePrimitiveType(value);
+
+        if (primitive.complex === false) {
+            return `repeated ${primitive.name}`;
+        }
+    }
+
+    return `repeated ${analyzeObjectProperty(key, first, collector, inlineShift)}`;
+}
+
 function analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
     if (Array.isArray(value)) {
-        // [] -> any
-        if (value.length === 0) {
-            collector.addImport(defaultImport);
-
-            return `repeated ${defaultAny}`;
-        }
-
-        // [[...]] -> any
-        const first = value[0];
-        if (Array.isArray(first)) {
-            collector.addImport(defaultImport);
-
-            return `repeated ${defaultAny}`;
-        }
-
-        const typeName = analyzeObjectProperty(key, value[0], collector, inlineShift);
-
-        return `repeated ${typeName}`;
+        return analyzeArrayProperty(key, value, collector, inlineShift);
     }
 
     return analyzeObjectProperty(key, value, collector, inlineShift);
@@ -237,29 +262,85 @@ function directType(value: any): boolean {
     return false;
 }
 
+function samePrimitiveType(array: Array<any>): ProtoPrimitiveType {
+    let current = toPrimitiveType(array[0]);
+    if (current.complex) {
+        return current;
+    }
+
+    for (let i = 1; i < array.length; i++) {
+        const next = toPrimitiveType(array[i]);
+
+        if (next.complex) {
+            return next;
+        }
+
+        current = mergePrimitiveType(current, next);
+        if (current.complex) {
+            return current;
+        }
+    }
+
+    return current;
+}
+
+function mergePrimitiveType(a: ProtoPrimitiveType, b: ProtoPrimitiveType): ProtoPrimitiveType {
+    if (a.name === b.name) {
+        return a;
+    }
+
+    if (a.merge && b.merge) {
+        if (a.name === "double") {
+            return a;
+        }
+
+        if (b.name === "double") {
+            return b;
+        }
+
+        if (a.name === "int64") {
+            return a;
+        }
+
+        if (b.name === "int64") {
+            return b;
+        }
+
+        if (a.name === "uint64") {
+            if (b.name === "uint32") {
+                return a;
+            }
+        } else if (b.name === "uint64") {
+            if (a.name === "uint32") {
+                return b;
+            }
+        }
+
+        return int64ProtoPrimitiveType;
+    }
+
+    return complexProtoType;
+}
+
+function toPrimitiveType(value: any): ProtoPrimitiveType {
+    switch (typeof value) {
+        case "string":
+            return stringProtoPrimitiveType;
+        case "number":
+            return new ProtoPrimitiveType(numberType(value), false, true);
+        case "boolean":
+            return boolProtoPrimitiveType;
+    }
+
+    return complexProtoType;
+}
+
 function analyzeType(value: any, collector: Collector): string {
     switch (typeof value) {
         case "string":
             return "string";
         case "number":
-            if (value % 1 === 0) {
-                if (value < 0) {
-                    if (value < -2147483648) {
-                        return "int64";
-                    }
-
-                    return "int32";
-                }
-
-
-                if (value > 2147483647) {
-                    return "uint64";
-                }
-
-                return "uint32";
-            }
-
-            return "double";
+            return numberType(value);
         case "boolean":
             return "bool";
         case "object":
@@ -275,4 +356,24 @@ function analyzeType(value: any, collector: Collector): string {
     collector.addImport(defaultImport);
 
     return defaultAny;
+}
+
+function numberType(value: number): string {
+    if (value % 1 === 0) {
+        if (value < 0) {
+            if (value < -2147483648) {
+                return "int64";
+            }
+
+            return "int32";
+        }
+
+        if (value > 4294967295) {
+            return "uint64";
+        }
+
+        return "uint32";
+    }
+
+    return "double";
 }
