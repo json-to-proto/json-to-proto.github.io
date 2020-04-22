@@ -131,6 +131,7 @@ message SomeMessage {
 }`)
     }
 
+    // array
     {
 
         assert("[]", `syntax = "proto3";
@@ -141,11 +142,20 @@ message SomeMessage {
     repeated google.protobuf.Any items = 1;
 }`);
 
-        assert("[1]", `syntax = "proto3";
+        {
+            assert("[1]", `syntax = "proto3";
 
 message SomeMessage {
     repeated uint32 items = 1;
 }`);
+
+            // biggest type
+            assert("[1, 2147483648]", `syntax = "proto3";
+
+message SomeMessage {
+    repeated int64 items = 1;
+}`);
+        }
 
         assert(`[{"id":1}]`, `syntax = "proto3";
 
