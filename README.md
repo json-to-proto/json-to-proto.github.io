@@ -5,7 +5,14 @@ Translates [JSON into a Protobuf](https://json-to-proto.github.io/) type in your
 Inspired by [JSON to Go](https://mholt.github.io/json-to-go/)
 
 # Example
-### Input GitHub API
+<table>
+<tr>
+<th> JSON </th>
+<th> Protobuf </th>
+</tr>
+<tr>
+<td>
+
 ```json
 {
   "id": 23357588,
@@ -132,7 +139,9 @@ Inspired by [JSON to Go](https://mholt.github.io/json-to-go/)
 }
 ```
 
-### Output
+</td>
+<td>
+
 ```protobuf
 syntax = "proto3";
 
@@ -268,3 +277,7 @@ message SomeMessage {
     uint32 subscribers_count = 77;
 }
 ```
+
+</td>
+</tr>
+</table
