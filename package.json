@@ -4,7 +4,8 @@
   "description": "JSON to Protobuf",
   "license": "MIT",
   "dependencies": {
-    "@highlightjs/highlight.js": "^10.0.0-beta.0"
+    "@highlightjs/highlight.js": "^10.0.0-beta.0",
+    "esbuild": "^0.8.12"
   },
   "devDependencies": {
     "@types/tape": "^4.13.0",
@@ -17,6 +18,7 @@
   },
   "scripts": {
     "build": "webpack --mode production",
+    "esbuild": "esbuild ./src/app.ts --bundle --minify --outfile=./static/js/app.js",
     "test": "ts-node node_modules/tape/bin/tape src/tests/*.ts"
   }
 }
