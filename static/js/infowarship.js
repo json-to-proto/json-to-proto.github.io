@@ -1,6 +1,6 @@
 (function() {
   var script = document.currentScript;
-  var debug = script && new URL(script.src).search.match(/\bdebug\b/);
+  var debug = (script && new URL(script.src).search.match(/\bdebug\b/)) || window.location.search.match(/\binfowarship_debug\b/);
   var _unique = 0;
   function jsonp(url, callback) {
     var name = "_jsonp_" + _unique++;
