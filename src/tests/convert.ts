@@ -3,7 +3,7 @@ import * as test from "tape";
 import {convert, Options} from "../convert";
 
 test("convert test", (t) => {
-    const options = new Options(true);
+    const options = new Options(true, false);
 
     function assert(json: string, protobuf: string) {
         t.equal(convert(json, options).success, protobuf);

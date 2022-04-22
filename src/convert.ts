@@ -1,5 +1,8 @@
-const defaultImport = "google/protobuf/any.proto";
-const defaultAny = "google.protobuf.Any";
+const googleAnyImport = "google/protobuf/any.proto";
+const googleTimestampImport = "google/protobuf/timestamp.proto";
+
+const googleAny = "google.protobuf.Any";
+const googleTimestamp = "google.protobuf.Timestamp";
 
 class Result {
     constructor(
@@ -21,10 +24,11 @@ class ProtoPrimitiveType {
 const boolProtoPrimitiveType = new ProtoPrimitiveType("bool", false, false);
 const stringProtoPrimitiveType = new ProtoPrimitiveType("string", false, false);
 const int64ProtoPrimitiveType = new ProtoPrimitiveType("int64", false, true);
-const complexProtoType = new ProtoPrimitiveType(defaultAny, true, false);
+const complexProtoType = new ProtoPrimitiveType(googleAny, true, false);
+const timestampProtoType = new ProtoPrimitiveType(googleTimestamp, false, false);
 
 export class Options {
-    constructor(public inline: boolean) {
+    constructor(public inline: boolean, public googleProtobufTimestamp: boolean) {
     }
 }
 
@@ -70,6 +74,212 @@ class Collector {
     }
 }
 
+class Analyzer {
+    constructor(private readonly options: Options) {
+
+    }
+
+    analyze(json: object): string {
+        if (this.directType(json)) {
+            return this.analyzeObject({"first": json});
+        }
+
+        if (Array.isArray(json)) {
+            return this.analyzeArray(json)
+        }
+
+        return this.analyzeObject(json);
+    }
+
+    directType(value: any): boolean {
+        switch (typeof value) {
+            case "string":
+            case "number":
+            case "boolean":
+                return true;
+            case "object":
+                return value === null;
+        }
+
+        return false;
+    }
+
+    analyzeArray(array: Array<any>): string {
+        const inlineShift = this.addShift();
+        const collector = new Collector();
+        const lines = [];
+
+        const typeName = this.analyzeArrayProperty("nested", array, collector, inlineShift)
+
+        lines.push(`    ${typeName} items = 1;`);
+
+        return render(collector.getImports(), collector.getMessages(), lines, this.options);
+    }
+
+    analyzeObject(json: object): string {
+        const inlineShift = this.addShift();
+        const collector = new Collector();
+        const lines = [];
+        let index = 1;
+
+        for (const [key, value] of Object.entries(json)) {
+            const typeName = this.analyzeProperty(key, value, collector, inlineShift)
+
+            lines.push(`    ${typeName} ${key} = ${index};`);
+
+            index += 1;
+        }
+
+        return render(collector.getImports(), collector.getMessages(), lines, this.options);
+    }
+
+    analyzeArrayProperty(key: string, value: Array<any>, collector: Collector, inlineShift: string): string {
+        // [] -> any
+        const length = value.length;
+        if (length === 0) {
+            collector.addImport(googleAnyImport);
+
+            return `repeated ${googleAny}`;
+        }
+
+        // [[...], ...] -> any
+        const first = value[0];
+        if (Array.isArray(first)) {
+            collector.addImport(googleAnyImport);
+
+            return `repeated ${googleAny}`;
+        }
+
+        if (length > 1) {
+            const primitive = this.samePrimitiveType(value);
+
+            if (primitive.complex === false) {
+                return `repeated ${primitive.name}`;
+            }
+        }
+
+        return `repeated ${this.analyzeObjectProperty(key, first, collector, inlineShift)}`;
+    }
+
+    analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
+        if (Array.isArray(value)) {
+            return this.analyzeArrayProperty(key, value, collector, inlineShift);
+        }
+
+        return this.analyzeObjectProperty(key, value, collector, inlineShift);
+    }
+
+    analyzeObjectProperty(key: string, value: any, collector: Collector, inlineShift: string) {
+        const typeName = this.analyzeType(value, collector);
+
+        if (typeName === "object") {
+            const messageName = collector.generateUniqueName(toMessageName(key));
+
+            this.addNested(collector, messageName, value, inlineShift);
+
+            return messageName;
+        }
+
+        return typeName;
+    }
+
+    analyzeType(value: any, collector: Collector): string {
+        switch (typeof value) {
+            case "string":
+                if (this.options.googleProtobufTimestamp && /\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(\+\d\d:\d\d|Z)/.test(value)) {
+                    collector.addImport(googleTimestampImport);
+
+                    return googleTimestamp;
+                } else {
+                    return "string";
+                }
+            case "number":
+                return numberType(value);
+            case "boolean":
+                return "bool";
+            case "object":
+                if (value === null) {
+                    collector.addImport(googleAnyImport);
+
+                    return googleAny;
+                }
+
+                return "object";
+        }
+
+        collector.addImport(googleAnyImport);
+
+        return googleAny;
+    }
+
+    toPrimitiveType(value: any): ProtoPrimitiveType {
+        switch (typeof value) {
+            case "string":
+                if (this.options.googleProtobufTimestamp && /\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(\+\d\d:\d\d|Z)/.test(value)) {
+                    return timestampProtoType;
+                } else {
+                    return stringProtoPrimitiveType;
+                }
+            case "number":
+                return new ProtoPrimitiveType(numberType(value), false, true);
+            case "boolean":
+                return boolProtoPrimitiveType;
+        }
+
+        return complexProtoType;
+    }
+
+    samePrimitiveType(array: Array<any>): ProtoPrimitiveType {
+        let current = this.toPrimitiveType(array[0]);
+        if (current.complex) {
+            return current;
+        }
+
+        for (let i = 1; i < array.length; i++) {
+            const next = this.toPrimitiveType(array[i]);
+
+            if (next.complex) {
+                return next;
+            }
+
+            current = mergePrimitiveType(current, next);
+            if (current.complex) {
+                return current;
+            }
+        }
+
+        return current;
+    }
+
+    addNested(collector: Collector, messageName: string, source: object, inlineShift: string) {
+        const lines = [];
+
+        lines.push(`${inlineShift}message ${messageName} {`);
+
+        let index = 1;
+
+        for (const [key, value] of Object.entries(source)) {
+            const typeName = this.analyzeProperty(key, value, collector, inlineShift)
+
+            lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
+
+            index += 1;
+        }
+
+        lines.push(`${inlineShift}}`);
+
+        collector.addMessage(lines);
+    }
+
+    addShift(): string {
+        if (this.options.inline) {
+            return `    `;
+        }
+
+        return "";
+    }
+}
+
 export function convert(source: string, options: Options): Result {
     if (source === "") {
         return new Result("", "");
@@ -81,129 +291,12 @@ export function convert(source: string, options: Options): Result {
     try {
         const json = JSON.parse(text);
 
-        return new Result(analyze(json, options), "");
+        const analyzer = new Analyzer(options);
+
+        return new Result(analyzer.analyze(json), "");
     } catch (e) {
         return new Result("", e.message);
     }
-}
-
-function addShift(inline: boolean): string {
-    if (inline) {
-        return `    `;
-    }
-
-    return "";
-}
-
-function analyze(json: object, options: Options): string {
-    if (directType(json)) {
-        return analyzeObject({"first": json}, options);
-    }
-
-    if (Array.isArray(json)) {
-        return analyzeArray(json, options)
-    }
-
-    return analyzeObject(json, options);
-}
-
-function analyzeArray(array: Array<any>, options: Options): string {
-    const inlineShift = addShift(options.inline);
-    const collector = new Collector();
-    const lines = [];
-
-    const typeName = analyzeArrayProperty("nested", array, collector, inlineShift)
-
-    lines.push(`    ${typeName} items = 1;`);
-
-    return render(collector.getImports(), collector.getMessages(), lines, options);
-}
-
-function analyzeObject(json: object, options: Options): string {
-    const inlineShift = addShift(options.inline);
-    const collector = new Collector();
-    const lines = [];
-    let index = 1;
-
-    for (const [key, value] of Object.entries(json)) {
-        const typeName = analyzeProperty(key, value, collector, inlineShift)
-
-        lines.push(`    ${typeName} ${key} = ${index};`);
-
-        index += 1;
-    }
-
-    return render(collector.getImports(), collector.getMessages(), lines, options);
-}
-
-function analyzeArrayProperty(key: string, value: Array<any>, collector: Collector, inlineShift: string): string {
-    // [] -> any
-    const length = value.length;
-    if (length === 0) {
-        collector.addImport(defaultImport);
-
-        return `repeated ${defaultAny}`;
-    }
-
-    // [[...], ...] -> any
-    const first = value[0];
-    if (Array.isArray(first)) {
-        collector.addImport(defaultImport);
-
-        return `repeated ${defaultAny}`;
-    }
-
-    if (length > 1) {
-        const primitive = samePrimitiveType(value);
-
-        if (primitive.complex === false) {
-            return `repeated ${primitive.name}`;
-        }
-    }
-
-    return `repeated ${analyzeObjectProperty(key, first, collector, inlineShift)}`;
-}
-
-function analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
-    if (Array.isArray(value)) {
-        return analyzeArrayProperty(key, value, collector, inlineShift);
-    }
-
-    return analyzeObjectProperty(key, value, collector, inlineShift);
-}
-
-function analyzeObjectProperty(key: string, value: any, collector: Collector, inlineShift: string) {
-    const typeName = analyzeType(value, collector);
-
-    if (typeName === "object") {
-        const messageName = collector.generateUniqueName(toMessageName(key));
-
-        addNested(collector, messageName, value, inlineShift);
-
-        return messageName;
-    }
-
-    return typeName;
-}
-
-function addNested(collector: Collector, messageName: string, source: object, inlineShift: string) {
-    const lines = [];
-
-    lines.push(`${inlineShift}message ${messageName} {`);
-
-    let index = 1;
-
-    for (const [key, value] of Object.entries(source)) {
-        const typeName = analyzeProperty(key, value, collector, inlineShift)
-
-        lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
-
-        index += 1;
-    }
-
-    lines.push(`${inlineShift}}`);
-
-    collector.addMessage(lines);
 }
 
 function toMessageName(source: string): string {
@@ -249,41 +342,6 @@ function render(imports: Set<string>, messages: Array<Array<string>>, lines: Arr
     return result.join("\n");
 }
 
-function directType(value: any): boolean {
-    switch (typeof value) {
-        case "string":
-        case "number":
-        case "boolean":
-            return true;
-        case "object":
-            return value === null;
-    }
-
-    return false;
-}
-
-function samePrimitiveType(array: Array<any>): ProtoPrimitiveType {
-    let current = toPrimitiveType(array[0]);
-    if (current.complex) {
-        return current;
-    }
-
-    for (let i = 1; i < array.length; i++) {
-        const next = toPrimitiveType(array[i]);
-
-        if (next.complex) {
-            return next;
-        }
-
-        current = mergePrimitiveType(current, next);
-        if (current.complex) {
-            return current;
-        }
-    }
-
-    return current;
-}
-
 function mergePrimitiveType(a: ProtoPrimitiveType, b: ProtoPrimitiveType): ProtoPrimitiveType {
     if (a.name === b.name) {
         return a;
@@ -320,42 +378,6 @@ function mergePrimitiveType(a: ProtoPrimitiveType, b: ProtoPrimitiveType): Proto
     }
 
     return complexProtoType;
-}
-
-function toPrimitiveType(value: any): ProtoPrimitiveType {
-    switch (typeof value) {
-        case "string":
-            return stringProtoPrimitiveType;
-        case "number":
-            return new ProtoPrimitiveType(numberType(value), false, true);
-        case "boolean":
-            return boolProtoPrimitiveType;
-    }
-
-    return complexProtoType;
-}
-
-function analyzeType(value: any, collector: Collector): string {
-    switch (typeof value) {
-        case "string":
-            return "string";
-        case "number":
-            return numberType(value);
-        case "boolean":
-            return "bool";
-        case "object":
-            if (value === null) {
-                collector.addImport(defaultImport);
-
-                return defaultAny;
-            }
-
-            return "object";
-    }
-
-    collector.addImport(defaultImport);
-
-    return defaultAny;
 }
 
 function numberType(value: number): string {

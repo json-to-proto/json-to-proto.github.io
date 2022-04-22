@@ -5,8 +5,9 @@ const $input = document.getElementById("input");
 const $output = document.getElementById("output");
 const $sample = document.getElementById("sample");
 const $inline = document.getElementById("inline") as HTMLInputElement;
+const $googleProtobufTimestamp = document.getElementById("google.protobuf.Timestamp") as HTMLInputElement;
 
-const options = new Options($inline.checked);
+const options = new Options($inline.checked, $googleProtobufTimestamp.checked);
 
 function doConversion() {
     const result = convert($input.innerText.trim(), options);
@@ -22,6 +23,12 @@ $input.addEventListener("keyup", doConversion);
 
 $inline.addEventListener("change", function () {
     options.inline = $inline.checked;
+
+    doConversion();
+});
+
+$googleProtobufTimestamp.addEventListener("change", function () {
+    options.googleProtobufTimestamp = $googleProtobufTimestamp.checked;
 
     doConversion();
 });
