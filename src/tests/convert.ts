@@ -3,7 +3,7 @@ import * as test from "tape";
 import {convert, Options} from "../convert";
 
 test("convert test", (t) => {
-    const options = new Options(true, false);
+    const options = new Options(true, false, true);
 
     function assert(json: string, protobuf: string) {
         t.equal(convert(json, options).success, protobuf);
@@ -232,6 +232,34 @@ message SomeMessage {
 
     repeated Nested items = 1;
 }`);
+
+        // merge
+        {
+            // language=JSON
+            const json = `{
+              "company": {
+                "id": 1,
+                "name": "ReadyToTouch"
+              },
+              "organization": {
+                "id": 1,
+                "name": "ReadyToTouch"
+              }
+            }`;
+
+            assert(json, `syntax = "proto3";
+
+message SomeMessage {
+
+    message Company {
+        uint32 id = 1;
+        string name = 2;
+    }
+
+    Company company = 1;
+    Company organization = 2;
+}`);
+        }
     }
 
     t.end();

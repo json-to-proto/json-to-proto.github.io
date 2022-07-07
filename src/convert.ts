@@ -28,7 +28,11 @@ const complexProtoType = new ProtoPrimitiveType(googleAny, true, false);
 const timestampProtoType = new ProtoPrimitiveType(googleTimestamp, false, false);
 
 export class Options {
-    constructor(public inline: boolean, public googleProtobufTimestamp: boolean) {
+    constructor(
+        public inline: boolean,
+        public googleProtobufTimestamp: boolean,
+        public mergeSameStructure: boolean,
+    ) {
     }
 }
 
