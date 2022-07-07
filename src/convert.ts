@@ -79,6 +79,8 @@ class Collector {
 }
 
 class Analyzer {
+    private mergeSameStructureMap: { [index: string]: string } = {};
+
     constructor(private readonly options: Options) {
 
     }
@@ -177,6 +179,24 @@ class Analyzer {
         const typeName = this.analyzeType(value, collector);
 
         if (typeName === "object") {
+            if (this.options.mergeSameStructure) {
+                const [mergeSameStructureKey, canMerge] = this.mergeSameStructureKey(value);
+
+                if (canMerge) {
+                    if (this.mergeSameStructureMap.hasOwnProperty(mergeSameStructureKey)) {
+                        return this.mergeSameStructureMap[mergeSameStructureKey];
+                    }
+
+                    const messageName = collector.generateUniqueName(toMessageName(key));
+
+                    this.mergeSameStructureMap[mergeSameStructureKey] = messageName;
+
+                    this.addNested(collector, messageName, value, inlineShift);
+
+                    return messageName;
+                }
+            }
+
             const messageName = collector.generateUniqueName(toMessageName(key));
 
             this.addNested(collector, messageName, value, inlineShift);
@@ -185,6 +205,43 @@ class Analyzer {
         }
 
         return typeName;
+    }
+
+    mergeSameStructureKey(source: object): [string, boolean] {
+        const lines = [];
+
+        for (const [key, value] of Object.entries(source)) {
+            const [typeName, canMerge] = this.mergeSameStructureType(value);
+
+            if (canMerge) {
+                lines.push([key, typeName])
+            } else {
+                return ["", false];
+            }
+        }
+
+        return [JSON.stringify(lines), true]
+    }
+
+    mergeSameStructureType(value: any): [string, boolean] {
+        if (Array.isArray(value)) {
+            return ["", false];
+        }
+
+        switch (typeof value) {
+            case "string":
+                if (this.options.googleProtobufTimestamp && /\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(\+\d\d:\d\d|Z)/.test(value)) {
+                    return [googleTimestamp, true];
+                } else {
+                    return ["string", true];
+                }
+            case "number":
+                return [numberType(value), true];
+            case "boolean":
+                return ["bool", true];
+        }
+
+        return ["", false];
     }
 
     analyzeType(value: any, collector: Collector): string {
