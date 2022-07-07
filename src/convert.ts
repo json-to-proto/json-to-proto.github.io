@@ -31,7 +31,7 @@ export class Options {
     constructor(
         public inline: boolean,
         public googleProtobufTimestamp: boolean,
-        public mergeSameStructure: boolean,
+        public mergeSimilarObjects: boolean,
     ) {
     }
 }
@@ -79,7 +79,7 @@ class Collector {
 }
 
 class Analyzer {
-    private mergeSameStructureMap: { [index: string]: string } = {};
+    private mergeSimilarObjectMap: { [index: string]: string } = {};
 
     constructor(private readonly options: Options) {
 
@@ -179,17 +179,17 @@ class Analyzer {
         const typeName = this.analyzeType(value, collector);
 
         if (typeName === "object") {
-            if (this.options.mergeSameStructure) {
-                const [mergeSameStructureKey, canMerge] = this.mergeSameStructureKey(value);
+            if (this.options.mergeSimilarObjects) {
+                const [mergeSimilarObjectKey, canMerge] = this.mergeSimilarObjectKey(value);
 
                 if (canMerge) {
-                    if (this.mergeSameStructureMap.hasOwnProperty(mergeSameStructureKey)) {
-                        return this.mergeSameStructureMap[mergeSameStructureKey];
+                    if (this.mergeSimilarObjectMap.hasOwnProperty(mergeSimilarObjectKey)) {
+                        return this.mergeSimilarObjectMap[mergeSimilarObjectKey];
                     }
 
                     const messageName = collector.generateUniqueName(toMessageName(key));
 
-                    this.mergeSameStructureMap[mergeSameStructureKey] = messageName;
+                    this.mergeSimilarObjectMap[mergeSimilarObjectKey] = messageName;
 
                     this.addNested(collector, messageName, value, inlineShift);
 
@@ -207,11 +207,11 @@ class Analyzer {
         return typeName;
     }
 
-    mergeSameStructureKey(source: object): [string, boolean] {
+    mergeSimilarObjectKey(source: object): [string, boolean] {
         const lines = [];
 
         for (const [key, value] of Object.entries(source)) {
-            const [typeName, canMerge] = this.mergeSameStructureType(value);
+            const [typeName, canMerge] = this.mergeSimilarObjectType(value);
 
             if (canMerge) {
                 lines.push([key, typeName])
@@ -223,7 +223,7 @@ class Analyzer {
         return [JSON.stringify(lines), true]
     }
 
-    mergeSameStructureType(value: any): [string, boolean] {
+    mergeSimilarObjectType(value: any): [string, boolean] {
         if (Array.isArray(value)) {
             return ["", false];
         }

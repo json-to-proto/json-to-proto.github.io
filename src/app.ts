@@ -6,8 +6,9 @@ const $output = document.getElementById("output");
 const $sample = document.getElementById("sample");
 const $inline = document.getElementById("inline") as HTMLInputElement;
 const $googleProtobufTimestamp = document.getElementById("google.protobuf.Timestamp") as HTMLInputElement;
+const $mergeSimilarObjects = document.getElementById("merge-similar-objects") as HTMLInputElement;
 
-const options = new Options($inline.checked, $googleProtobufTimestamp.checked);
+const options = new Options($inline.checked, $googleProtobufTimestamp.checked, $mergeSimilarObjects.checked);
 
 function doConversion() {
     const result = convert($input.innerText.trim(), options);
@@ -29,6 +30,12 @@ $inline.addEventListener("change", function () {
 
 $googleProtobufTimestamp.addEventListener("change", function () {
     options.googleProtobufTimestamp = $googleProtobufTimestamp.checked;
+
+    doConversion();
+});
+
+$mergeSimilarObjects.addEventListener("change", function () {
+    options.mergeSimilarObjects = $mergeSimilarObjects.checked;
 
     doConversion();
 });
