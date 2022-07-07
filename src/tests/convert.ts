@@ -13,7 +13,10 @@ test("convert test", (t) => {
     {
         // null
         {
-            assert("null", `syntax = "proto3";
+            // language=JSON
+            const json = "null";
+
+            assert(json, `syntax = "proto3";
 
 import "google/protobuf/any.proto";
 
@@ -54,25 +57,45 @@ message SomeMessage {
 
     // object
     {
-        assert("{}", `syntax = "proto3";
+        // language=JSON
+        let json = "{}";
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
 }`);
 
-        assert(`{"id":1}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1
+        }`
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
     uint32 id = 1;
 }`);
 
-        assert(`{"id":1,"name":"json-top-proto"}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1,
+          "name": "json-top-proto"
+        }`
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
     uint32 id = 1;
     string name = 2;
 }`);
 
-        assert(`{"id":1,"name":null}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1,
+          "name": null
+        }`
+
+        assert(json, `syntax = "proto3";
 
 import "google/protobuf/any.proto";
 
@@ -81,7 +104,16 @@ message SomeMessage {
     google.protobuf.Any name = 2;
 }`);
 
-        assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"}}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1,
+          "name": "json-top-proto",
+          "license": {
+            "name": "MIT"
+          }
+        }`
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
 
@@ -94,7 +126,23 @@ message SomeMessage {
     License license = 3;
 }`);
 
-        assert(`{"id":1,"name":"json-top-proto","license":{"name":"MIT"},"owner":{"id":1},"tags":["json","protobuf"]}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1,
+          "name": "json-top-proto",
+          "license": {
+            "name": "MIT"
+          },
+          "owner": {
+            "id": 1
+          },
+          "tags": [
+            "json",
+            "protobuf"
+          ]
+        }`;
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
 
@@ -113,7 +161,18 @@ message SomeMessage {
     repeated string tags = 5;
 }`);
 
-        assert(`{"id":1,"project":{"id":2,"site":{"url":"https://json-to-proto.github.io/"}}}`, `syntax = "proto3";
+        // language=JSON
+        json = `{
+          "id": 1,
+          "project": {
+            "id": 2,
+            "site": {
+              "url": "https://json-to-proto.github.io/"
+            }
+          }
+        }`;
+
+        assert(json, `syntax = "proto3";
 
 message SomeMessage {
 
@@ -143,14 +202,20 @@ message SomeMessage {
 }`);
 
         {
-            assert("[1]", `syntax = "proto3";
+            // language=JSON
+            let json = "[1]";
+
+            assert(json, `syntax = "proto3";
 
 message SomeMessage {
     repeated uint32 items = 1;
 }`);
 
+            // language=JSON
+            json = "[1, 4294967296]";
+
             // biggest type
-            assert("[1, 4294967296]", `syntax = "proto3";
+            assert(json, `syntax = "proto3";
 
 message SomeMessage {
     repeated uint64 items = 1;
