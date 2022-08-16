@@ -1,5 +1,5 @@
-import hljs from "@highlightjs/highlight.js/lib/core";
-import protobuf from "@highlightjs/highlight.js/lib/languages/protobuf";
+import hljs from "highlight.js/lib/core";
+import protobuf from "highlight.js/lib/languages/protobuf";
 
 hljs.registerLanguage("protobuf", protobuf);
 
@@ -10,7 +10,7 @@ export default function highlight(source: string): string {
 }
 
 let initOnce = function() {
-    css("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/default.min.css");
+    css("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css");
 
     initOnce = function () {};
 };
