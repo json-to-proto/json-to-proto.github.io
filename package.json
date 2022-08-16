@@ -4,17 +4,17 @@
   "description": "JSON to Protobuf",
   "license": "MIT",
   "dependencies": {
-    "esbuild": "^0.15.4",
     "highlight.js": "^11.6.0"
   },
   "devDependencies": {
     "@types/tape": "^4.13.2",
-    "tape": "^4.15.1",
-    "ts-loader": "^7.0.5",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.10",
+    "esbuild": "^0.15.4",
+    "tape": "^5.6.0",
+    "ts-loader": "^9.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4",
     "webpack": "^5.74.0",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^4.10.0"
   },
   "scripts": {
     "build": "webpack --mode production",

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
     "noImplicitAny": false,
     "target": "es6",
     "allowJs": true,
