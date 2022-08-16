@@ -6,7 +6,7 @@ hljs.registerLanguage("protobuf", protobuf);
 export default function highlight(source: string): string {
     initOnce();
 
-    return hljs.highlight("protobuf", source).value;
+    return hljs.highlight(source, {language: "protobuf"}).value;
 }
 
 let initOnce = function() {
