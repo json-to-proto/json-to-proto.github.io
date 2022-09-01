@@ -44,6 +44,10 @@ p {
     line-height: 1.5em;
 }
 
+p:first-child {
+    margin-top: 0;
+}
+
 table {
     width: 100%;
     table-layout: fixed;
@@ -103,6 +107,17 @@ footer {
     text-align: center;
     padding: 25px 0 50px;
     line-height: 2em;
+}
+
+.copy {
+    font-size: 14px;
+    padding: 5px;
+    background: #80808099;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.copy:hover {
+    background: #808080cf;
 }
 
 @media (max-width: 800px) {

@@ -7,6 +7,7 @@ const $sample = document.getElementById("sample");
 const $inline = document.getElementById("inline") as HTMLInputElement;
 const $googleProtobufTimestamp = document.getElementById("google.protobuf.Timestamp") as HTMLInputElement;
 const $mergeSimilarObjects = document.getElementById("merge-similar-objects") as HTMLInputElement;
+const $copy = document.getElementById("copy-to-clipboard") as HTMLInputElement;
 
 const options = new Options($inline.checked, $googleProtobufTimestamp.checked, $mergeSimilarObjects.checked);
 
@@ -45,6 +46,10 @@ $sample.addEventListener("click", function () {
 
     doConversion();
 });
+
+$copy.addEventListener("click", function() {
+    navigator.clipboard.writeText($output.innerText);
+})
 
 const sample = `{
   "id": 23357588,
