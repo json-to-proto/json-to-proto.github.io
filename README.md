@@ -1,4 +1,4 @@
-# JSON to Protobuf online [![Build Status](https://travis-ci.org/json-to-proto/json-to-proto.github.io.svg?branch=master)](https://travis-ci.org/json-to-proto/json-to-proto.github.io)
+# JSON to Protobuf online [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#json)
 
 Translates [JSON into a Protobuf](https://json-to-proto.github.io/) type in your browser instantly
 
