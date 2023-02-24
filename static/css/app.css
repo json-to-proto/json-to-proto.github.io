@@ -10,87 +10,96 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 body {
     font: 14px/1.25em sans-serif;
 }
-
+  
 code {
     font-family: 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
-    padding: 0 3px;
+  padding: 0 3px;
 }
 
 header {
-    padding: 20px;
+  padding: 20px;
 }
 
 .intro {
-    display: flex;
+  display: flex;
 }
 
 .intro > div {
-    width: 33.333%;
+  width: 33.333%;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+}
+
+.github-stars {
+  margin-top: auto;
 }
 
 h1 {
-    font-size: 34px;
-    font-weight: bold;
-    line-height: 1.5em;
+  font-size: 34px;
+  font-weight: bold;
+  line-height: 1.5em;
 }
 
 h2 {
-    font-size: 24px;
-    line-height: 1.3em;
+  font-size: 24px;
+  line-height: 1.3em;
 }
 
 p {
-    margin-top: 20px;
-    line-height: 1.5em;
+  margin-top: 20px;
+  line-height: 1.5em;
 }
 
 p:first-child {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 table {
-    width: 100%;
-    table-layout: fixed;
+  width: 100%;
+  table-layout: fixed;
 }
 
 th {
-    padding: 15px;
+  padding: 15px;
     background: #375EAB;
-    text-align: center;
+  text-align: center;
     color: #FFF;
-    font-size: 20px;
+  font-size: 20px;
 }
 
 th label {
-    margin-left: 1em;
-    font-size: 14px;
-    cursor: pointer;
+  margin-left: 1em;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 td {
-    width: 50%;
-    vertical-align: top;
+  width: 50%;
+  vertical-align: top;
 }
 
 #input,
 #output {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -o-box-sizing: border-box;
-    box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  box-sizing: border-box;
 
-    white-space: pre;
-    width: 100%;
-    display: block;
-    padding: 3%;
+  white-space: pre;
+  width: 100%;
+  display: block;
+  padding: 3%;
     font: 14px/1.5em 'Consolas', 'Menlo', 'Monaco', 'Courier New', monospace;
-    outline: none;
-    border: none;
-    resize: vertical;
-    height: 500px;
-    height: 65vh;
-    overflow: scroll;
-    tab-size: 4;
+  outline: none;
+  border: none;
+  resize: vertical;
+  height: 500px;
+  height: 65vh;
+  overflow: scroll;
+  tab-size: 4;
 }
 
 #input {
@@ -103,29 +112,87 @@ td {
 }
 
 footer {
-    color: #888;
-    text-align: center;
-    padding: 25px 0 50px;
-    line-height: 2em;
+  color: #888;
+  padding: 20px 20px 29px;
+  line-height: 2em;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.github-links {
+  display: flex;
+  align-items: center;
+}
+
+.suport-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.suport-buttons a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 0;
+  gap: 8px;
+  width: 220px;
+  border: 1px solid #c6cad2;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 140%;
+  color: #13161b;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.suport-buttons a:hover {
+  background: #f3f5f8;
 }
 
 .copy {
-    font-size: 14px;
-    padding: 5px;
-    background: #80808099;
-    border-radius: 5px;
-    cursor: pointer;
+  font-size: 14px;
+  padding: 5px;
+  background: #80808099;
+  border-radius: 5px;
+  cursor: pointer;
 }
+
 .copy:hover {
-    background: #808080cf;
+  background: #808080cf;
+}
+
+@media (max-width: 1024px) {
+  .info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .suport-buttons {
+    margin: 0;
+  }
+
+  .github-links {
+    margin-bottom: 15px;
+  }
 }
 
 @media (max-width: 800px) {
-    .intro {
-        flex-direction: column;
-    }
+  .github-stars {
+    margin: 10px 0;
+  }
 
-    .intro > div {
-        width: 100%;
-    }
+  .intro {
+    flex-direction: column;
+  }
+
+  .intro > div {
+    width: 100%;
+  }
 }
