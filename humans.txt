@@ -1,0 +1,26 @@
+/* TEAM */
+    Name: Yaroslav Podorvanov
+    Role: Back-end Developer
+    Profile: https://github.com/YaroslavPodorvanov
+    From: Ukraine
+
+    Name: Victor Poprozhuk
+    Role: Front-end Developer
+    Profile: https://github.com/VictorPoprozhuk
+    From: Ukraine
+
+    Name: Anastasiia Sihetii
+    Role: Designer
+    Profile: https://github.com/AnastasiiaSihetii
+    From: Ukraine
+
+/* SITE */
+    Tools:
+        Front-end:
+            TypeScript
+            Highlight.js https://github.com/highlightjs/highlight.js
+        Favicon:
+            https://www.favicon-generator.org/
+
+Inspired by https://mholt.github.io/json-to-go/
+Inspired by https://humanstxt.org/humans.txt
