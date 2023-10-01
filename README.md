@@ -1,8 +1,29 @@
 # JSON to Protobuf online [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go#json)
-
-Translates [JSON into a Protobuf](https://json-to-proto.github.io/) type in your browser instantly
+JSON to Protobuf online is an online—browser-based file converter for converting from JSON to Protobuf for use in programs.
+Use this software when you need to convert JSON files that are used in JavaScript to Protobuf, which can be used in a variety of other programming languages. 
 
 Inspired by [JSON to Go](https://mholt.github.io/json-to-go/)
+
+# How To Use
+Works directly in the browser, no installation is needed. Copy and Paste JSON file into the online tool as the input, and Protobuf is outputted instantly.
+Conversion Options:
+- Inline Definitions
+- google.protobuf.Timestamp
+- Merging Similar Objects
+Selections Change the outpute in real-time.
+
+# [Start Translating now](https://json-to-proto.github.io/).
+
+# How To Contribute
+1. Fork the repository and create your own branch from `master`.
+2. Make Code changes.
+3. Create Tests if added code should be tested.
+4. Ensure existing tests pass.
+5. Create a Pull Request to `master` to be reviewed.
+
+Issues are tracked in the GitHub `Issues` tab. This is the best place to begin contributing.
+
+Thank You For Contributing.
 
 # Example
 ### Input JSON:
