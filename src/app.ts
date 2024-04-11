@@ -43,9 +43,9 @@ $mergeSimilarObjects.addEventListener("change", function () {
 });
 
 $lowerSnakeCaseFieldNames.addEventListener("change", function () {
-  options.lowerSnakeCaseFieldNames = $lowerSnakeCaseFieldNames.checked;
+    options.lowerSnakeCaseFieldNames = $lowerSnakeCaseFieldNames.checked;
 
-  doConversion();
+    doConversion();
 });
 
 $sample.addEventListener("click", function () {
