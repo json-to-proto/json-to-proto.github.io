@@ -32,6 +32,7 @@ export class Options {
         public inline: boolean,
         public googleProtobufTimestamp: boolean,
         public mergeSimilarObjects: boolean,
+        public lowerSnakeCaseFieldNames: boolean,
     ) {
     }
 }
@@ -129,9 +130,11 @@ class Analyzer {
         let index = 1;
 
         for (const [key, value] of Object.entries(json)) {
-            const typeName = this.analyzeProperty(key, value, collector, inlineShift)
+            // It is assumed that the key is either in camelCase or snake_case (see https://jsonapi.org/recommendations/).
+            const formattedKey = this.options.lowerSnakeCaseFieldNames ? key.replace(/([A-Z])/g, "_$1").toLowerCase() : key;
+            const typeName = this.analyzeProperty(formattedKey, value, collector, inlineShift)
 
-            lines.push(`    ${typeName} ${key} = ${index};`);
+            lines.push(`    ${typeName} ${formattedKey} = ${index};`);
 
             index += 1;
         }
@@ -320,9 +323,11 @@ class Analyzer {
         let index = 1;
 
         for (const [key, value] of Object.entries(source)) {
-            const typeName = this.analyzeProperty(key, value, collector, inlineShift)
+            // It is assumed that the key is either in camelCase or snake_case (see https://jsonapi.org/recommendations/).
+            const formattedKey = this.options.lowerSnakeCaseFieldNames ? key.replace(/([A-Z])/g, "_$1").toLowerCase() : key; 
+            const typeName = this.analyzeProperty(formattedKey, value, collector, inlineShift)
 
-            lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
+            lines.push(`${inlineShift}    ${typeName} ${formattedKey} = ${index};`);
 
             index += 1;
         }

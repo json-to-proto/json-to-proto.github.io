@@ -3,10 +3,10 @@ import * as test from "tape";
 import {convert, Options} from "../convert";
 
 test("convert test", (t) => {
-    const options = new Options(true, false, true);
+    const options = new Options(true, false, true, false);
 
-    function assert(json: string, protobuf: string) {
-        t.equal(convert(json, options).success, protobuf);
+    function assert(json: string, protobuf: string, overrideOptions?: Options) {
+        t.equal(convert(json, overrideOptions ?? options).success, protobuf);
     }
 
     // primitives
@@ -75,6 +75,51 @@ message SomeMessage {
 message SomeMessage {
     uint32 id = 1;
 }`);
+
+        // language=JSON
+        json = `{
+          "person": {
+            "firstName": "John",
+            "lastName": "Doe"
+          },
+          "favoriteFood": "pizza"
+        }`
+
+        assert(json, `syntax = "proto3";
+
+message SomeMessage {
+
+    message Person {
+        string firstName = 1;
+        string lastName = 2;
+    }
+
+    Person person = 1;
+    string favoriteFood = 2;
+}`);
+
+
+        // language=JSON
+        json = `{
+          "person": {
+            "firstName": "John",
+            "lastName": "Doe"
+          },
+          "favoriteFood": "pizza"
+        }`
+
+        assert(json, `syntax = "proto3";
+
+message SomeMessage {
+
+    message Person {
+        string first_name = 1;
+        string last_name = 2;
+    }
+
+    Person person = 1;
+    string favorite_food = 2;
+}`, new Options(true, false, true, true));
 
         // language=JSON
         json = `{
@@ -236,7 +281,7 @@ message SomeMessage {
         // merge
         {
             // language=JSON
-            const json = `{
+            let json = `{
               "company": {
                 "id": 1,
                 "name": "ReadyToTouch"
@@ -259,6 +304,34 @@ message SomeMessage {
     Company company = 1;
     Company organization = 2;
 }`);
+
+            // language=JSON
+            json = `{
+              "company": {
+                "id": 1,
+                "name": "ReadyToTouch",
+                "isPublic": true
+              },
+              "organization": {
+                "id": 1,
+                "name": "ReadyToTouch",
+                "isPublic": false
+              }
+            }`;
+
+            assert(json, `syntax = "proto3";
+
+message SomeMessage {
+
+    message Company {
+        uint32 id = 1;
+        string name = 2;
+        bool is_public = 3;
+    }
+
+    Company company = 1;
+    Company organization = 2;
+}`, new Options(true, false, true, true));
         }
     }
 

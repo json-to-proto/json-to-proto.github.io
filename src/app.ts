@@ -7,9 +7,10 @@ const $sample = document.getElementById("sample");
 const $inline = document.getElementById("inline") as HTMLInputElement;
 const $googleProtobufTimestamp = document.getElementById("google.protobuf.Timestamp") as HTMLInputElement;
 const $mergeSimilarObjects = document.getElementById("merge-similar-objects") as HTMLInputElement;
+const $lowerSnakeCaseFieldNames = document.getElementById("lower-snake-case-field-names") as HTMLInputElement;
 const $copy = document.getElementById("copy-to-clipboard") as HTMLInputElement;
 
-const options = new Options($inline.checked, $googleProtobufTimestamp.checked, $mergeSimilarObjects.checked);
+const options = new Options($inline.checked, $googleProtobufTimestamp.checked, $mergeSimilarObjects.checked, $lowerSnakeCaseFieldNames.checked);
 
 function doConversion() {
     const result = convert($input.innerText.trim(), options);
@@ -37,6 +38,12 @@ $googleProtobufTimestamp.addEventListener("change", function () {
 
 $mergeSimilarObjects.addEventListener("change", function () {
     options.mergeSimilarObjects = $mergeSimilarObjects.checked;
+
+    doConversion();
+});
+
+$lowerSnakeCaseFieldNames.addEventListener("change", function () {
+    options.lowerSnakeCaseFieldNames = $lowerSnakeCaseFieldNames.checked;
 
     doConversion();
 });
