@@ -130,8 +130,9 @@ class Analyzer {
         let index = 1;
 
         for (const [key, value] of Object.entries(json)) {
+            let sanitizeKey = this.sanitizeKey(key);
             // It is assumed that the key is either in camelCase or snake_case (see https://jsonapi.org/recommendations/).
-            const formattedKey = this.options.lowerSnakeCaseFieldNames ? key.replace(/([A-Z])/g, "_$1").toLowerCase() : key;
+            const formattedKey = this.options.lowerSnakeCaseFieldNames ? sanitizeKey.replace(/([A-Z])/g, "_$1").toLowerCase() : sanitizeKey;
             const typeName = this.analyzeProperty(formattedKey, value, collector, inlineShift)
 
             lines.push(`    ${typeName} ${formattedKey} = ${index};`);
@@ -140,6 +141,32 @@ class Analyzer {
         }
 
         return render(collector.getImports(), collector.getMessages(), lines, this.options);
+    }
+
+    sanitizeKey(key: string): string {
+      const keyArray = key.split("");
+      let result = "";
+      for (const { index, char } of keyArray.map((char, index) => ({
+        char,
+        index,
+      }))) {
+        let newChar = char;
+        if (index === 0 && !char.match(/[a-zA-Z]/)) {
+          throw new Error(
+            `Invalid character: '${char}'. The first character must be a letter. Invalid key: "${key}."`
+          );
+        } else if (char === "-") {
+          newChar = "_";
+        } else if (char.match(/[a-zA-Z0-9]/)) newChar = char;
+        else
+          throw new Error(
+            `Invalid character in position ${
+              index + 1
+            }. The character "${char}" is not allowed. Invalid key: "${key}."`
+          );
+        result += newChar;
+      }
+      return result;
     }
 
     analyzeArrayProperty(key: string, value: Array<any>, collector: Collector, inlineShift: string): string {
@@ -323,8 +350,9 @@ class Analyzer {
         let index = 1;
 
         for (const [key, value] of Object.entries(source)) {
+            const sanitizeKey = this.sanitizeKey(key);
             // It is assumed that the key is either in camelCase or snake_case (see https://jsonapi.org/recommendations/).
-            const formattedKey = this.options.lowerSnakeCaseFieldNames ? key.replace(/([A-Z])/g, "_$1").toLowerCase() : key; 
+            const formattedKey = this.options.lowerSnakeCaseFieldNames ? sanitizeKey.replace(/([A-Z])/g, "_$1").toLowerCase() : sanitizeKey; 
             const typeName = this.analyzeProperty(formattedKey, value, collector, inlineShift)
 
             lines.push(`${inlineShift}    ${typeName} ${formattedKey} = ${index};`);
