@@ -335,5 +335,41 @@ message SomeMessage {
         }
     }
 
+    {
+      let json = `{
+    "FirstName": "Hanna",
+    "w12-of": 43.21
+}`;
+
+      assert(json, `syntax = "proto3";
+
+message SomeMessage {
+    string FirstName = 1;
+    double w12_of = 2;
+}`);
+    }
+    
+    t.end();
+});
+
+test("convert test exceptions", (t) => {
+    const options = new Options(true, false, true, false);
+    function assert(json: string, message: string, overrideOptions?: Options) {
+      t.equal(convert(json, overrideOptions ?? options).error, message);
+    }
+
+    {
+      let json = `{"1": "hello", "2": "world"}`;
+      assert(json, `Invalid character: '1'. The first character must be a letter. Invalid key: "1".`);
+    }
+
+    {
+      let json = `{
+      "FirstName": "Hanna",
+      "12-of": 43.21
+}`;
+      assert(json, `Invalid character: '1'. The first character must be a letter. Invalid key: "12-of".`);
+    }
+
     t.end();
 });

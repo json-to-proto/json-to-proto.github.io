@@ -153,7 +153,7 @@ class Analyzer {
         let newChar = char;
         if (index === 0 && !char.match(/[a-zA-Z]/)) {
           throw new Error(
-            `Invalid character: '${char}'. The first character must be a letter. Invalid key: "${key}."`
+            `Invalid character: '${char}'. The first character must be a letter. Invalid key: "${key}".`
           );
         } else if (char === "-") {
           newChar = "_";
@@ -162,7 +162,7 @@ class Analyzer {
           throw new Error(
             `Invalid character in position ${
               index + 1
-            }. The character "${char}" is not allowed. Invalid key: "${key}."`
+            }. The character "${char}" is not allowed. Invalid key: "${key}".`
           );
         result += newChar;
       }
