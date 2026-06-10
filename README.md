@@ -5,14 +5,14 @@ Use this software when you need to convert JSON files that are used in JavaScrip
 Inspired by [JSON to Go](https://mholt.github.io/json-to-go/)
 
 # How To Use
-Works directly in the browser, no installation is needed. Copy and Paste JSON file into the online tool as the input, and Protobuf is outputted instantly.
+Works directly in the browser, no installation is needed. Copy and paste a JSON file into the online tool as the input, and Protobuf is generated instantly.
 Conversion Options:
 - Inline Definitions
 - google.protobuf.Timestamp
 - Merging Similar Objects
-Selections Change the outpute in real-time.
+Selections change the output in real time.
 
-# [Start Translating now](https://json-to-proto.github.io/).
+# [Start Converting now](https://json-to-proto.github.io/).
 
 ## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
 
