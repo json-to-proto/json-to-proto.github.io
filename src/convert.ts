@@ -157,7 +157,7 @@ class Analyzer {
           );
         } else if (char === "-") {
           newChar = "_";
-        } else if (char.match(/[a-zA-Z0-9]/)) newChar = char;
+        } else if (char.match(/[a-zA-Z0-9_]/)) newChar = char;
         else
           throw new Error(
             `Invalid character in position ${
